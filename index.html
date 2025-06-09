@@ -12,9 +12,8 @@
             font-family: 'Inter', sans-serif;
             background-color: #0F0518; /* Deep dark purple - base background */
             color: #E0E7FF; /* Light lavender for text */
-            -webkit-text-size-adjust: none;
-            text-size-adjust: none; /* Address compatibility warning */
             -webkit-text-size-adjust: none; /* Address compatibility warning */
+            text-size-adjust: none; /* Address compatibility warning */
         }
         .header-glow {
             text-shadow: 0 0 8px rgba(196, 181, 253, 0.7), 0 0 12px rgba(167, 139, 250, 0.5);
@@ -30,9 +29,8 @@
         }
         .card {
             background-color: rgba(26, 10, 42, 0.8); /* Slightly transparent card background */
-            -webkit-backdrop-filter: blur();
+            -webkit-backdrop-filter: blur(); /* Safari compatibility */
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px); /* Safari compatibility */
             border: 1px solid #4A0E6A;
         }
         .mermaid-container svg {
@@ -161,8 +159,7 @@
             <button id="closeModalButton" class="w-full quantum-accent-bg hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150">Close</button>
         </div>
     </div>
-
-
+    
     <script>
         // Set current year in footer
         document.getElementById('currentYear').textContent = new Date().getFullYear();
