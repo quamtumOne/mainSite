@@ -29,8 +29,9 @@
         }
         .card {
             background-color: rgba(26, 10, 42, 0.8); /* Slightly transparent card background */
-            -webkit-backdrop-filter: blur(); /* Safari compatibility */
+            -webkit-backdrop-filter: blur(10px); /* Safari compatibility */
             backdrop-filter: blur(10px);
+
             border: 1px solid #4A0E6A;
         }
         .mermaid-container svg {
@@ -159,7 +160,7 @@
             <button id="closeModalButton" class="w-full quantum-accent-bg hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150">Close</button>
         </div>
     </div>
-    
+
     <script>
         // Set current year in footer
         document.getElementById('currentYear').textContent = new Date().getFullYear();
