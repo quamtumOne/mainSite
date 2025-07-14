@@ -1,11 +1,10 @@
 .env
 node_modules
 flaky-flare
-assetsComplete
 launch.json
 package-lock.json 
 passwords
 assetsComplete\websiteCodeInitialV2.html
 savedROadmap2.html
 websiteCodeInitialV3.html
-index.html
+

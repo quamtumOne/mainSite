@@ -5,20 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quamtum.one - NEPO Project</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval' blob:;
+    style-src 'self' https://fonts.googleapis.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net 'unsafe-inline';
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data:;
+    connect-src 'self'; 
+    form-action 'self';
+    base-uri 'self';
+    object-src 'none';
+    frame-src 'none';
+    worker-src 'self' blob:;
+">
+
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
-    <script src="https://partner.microsoft.com/fr-fr/licensing/path/jsonp?callback=alert(document.domain)//"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="index.html"></script>
-
-    <style>
-
-
-    </style>
+    
+    <link rel="stylesheet" href="assetsComplete/style.css">
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
 
@@ -76,4 +87,7 @@
             <button id="closeModalButton" class="w-full quantum-accent-bg hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150">Close</button>
         </div>
     </div>
-    
+
+<script src="assetsComplete/scripts/script.js"></script>
+</body>
+</html>
