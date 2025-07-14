@@ -360,29 +360,26 @@ flowchart TD
     F["👤 User Data"]:::dataNode <--> D
     
     %% Clickable nodes
-    click A-1 href "https://en.wikipedia.org/wiki/List_of_communication_satellite_companies/ Project Scope"
-    click 1 href "https://quamtum.one/ Project Scope"
-    click B href "https://quamtum.one/ in Depth Project Scope"
-    click B-1.0 href "https://en.wikipedia.org/wiki/Qubit/"
-    click 1 href "https://quamtum.one/"
-    click C href "https://quamtum.one/ QDK Beta Phase" "Microprocessing Units Hardware Open Research Section"
-    click D href "https://quamtum.one/ Open Development Section"
-    click E href "https://quamtum.one/ Deployment Details"
-    click B-1 href "https://quamtum.one/ Deployment Details"
-    click D1 href "https://quamtum.one/ Deployment Details"
-    click LAX href "https://quamtum.one/ Deployment Details"
-    click LEX href "https://quamtum.one/ Deployment Details"
-    click MeGCPu href "https://quamtum.one/ Deployment Details"
-    click DLLMNn href "https://quamtum.one/ Deployment Details"
-    click F "https://quamtum.one/ Deployment Details"
-    click II "https://quamtum.one/ Deployment Details"
-    click III "https://quamtum.one/ Deployment Details"
-    click QX-Phone "https://quamtum.one/ Deployment Details"
-    click User_Dev "https://quamtum.one/ Deployment Details"
-    click B1 "https://quamtum.one/ Deployment Details"
-    click A "https://quamtum.one/ Deployment Details"
-    click G "https://quamtum.one/ Deployment Details"
-    
+    click A href "index.html#project-scope" "Go to Project Scope Details"
+    click B href "index.html#research-details" "Learn about Research"
+    click C href "index.html#development-phase" "Explore Development"
+    click D href "index.html#qdk-beta" "QDK Beta Phase Info"
+    click E href "index.html#deployment-info" "Deployment Information"
+    click F href "index.html#feedback-loop" "Feedback Mechanisms"
+    click G href "index.html#next-iteration" "Next Iteration Plans"
+    click B1 href "index.html#microprocessing-units" "Microprocessing Unit Details"
+    click D1 href "index.html#sat-info" "Satellite Information"
+    click User_Dev href "index.html#user-development" "User & Development Interaction"
+    click QX-Phone href "index.html#quantum-phone" "The Quantum Phone"
+    click II href "index.html#manufacturing" "Phase II: Manufacturing"
+    click III href "index.html#distribution" "Phase III: Network & Distribution"
+
+    %% Also ensure any other clickable nodes like LEX, LAX, etc. are updated similarly
+    click LEX href "index.html#lex-info" "LEX Information"
+    click MExGCPu href "index.html#mexgcpu-info" "MExGCPu Details"
+    click LAX href "index.html#lax-info" "LAX Information"
+    click DLLMNn href "index.html#dllmnn-info" "DLLMNn Details"
+        
 `;
 
     const el = document.getElementById("roadmapDiagram");

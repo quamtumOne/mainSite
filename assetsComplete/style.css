@@ -2,7 +2,7 @@
   
     --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --color-red-500: oklch(58.774% 0.10047 206.283);
-    background-color: rgba(0,0,0,0.7);
+    background-color: rgba(0, 0, 7, 0.911);
     text-shadow: #0685cf 0px px px rgb(94, 113, 0), -1px 14px 4px rgb(26, 2, 54), 7px 4px 2px rgb(43, 44, 0);
 }
 
