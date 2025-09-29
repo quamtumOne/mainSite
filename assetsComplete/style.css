@@ -10,8 +10,7 @@
 font-family: 'Inter', sans-serif;
 background-color: #0F0518; /* Deep dark purple - base background */
 color: #E0E7FF; /* Light lavender for text */
--webkit-text-size-adjust: none; /* Address compatibility warning */
-text-size-adjust: none; /* Address compatibility warning */
+-webkit-text-size-adjust: none; /* Prevent font scaling in Safari/Chrome */
 }
 .header-glow {
     text-shadow: 0 0 8px rgba(196, 181, 253, 0.7), 0 0 12px rgba(167, 139, 250, 0.5);
@@ -103,4 +102,9 @@ box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 .modal-overlay.active .modal-content {
     transform: scale(1);
+}
+
+.toast {
+    visibility: hidden; 
+    opacity: 0; 
 }
