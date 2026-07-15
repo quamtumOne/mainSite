@@ -3,18 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixBits // Pre-Scope Specification</title>
+    <title>PixBits // Pre-Scope Specification & 3D Quantum Sphere</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
     <style>
         :root {
             --bg-dark: #0b0f19;
             --panel-bg: rgba(17, 24, 39, 0.7);
             --border-color: rgba(55, 65, 81, 0.5);
             
-            /* Build-inspired pure matrix accents */
+            /* Pure matrix accents */
             --pixel-blue: #0078d4;
             --pixel-green: #107c41;
             --pixel-yellow: #f2c811;
             --pixel-red: #d83b01;
+            --pixel-quantum: #a855f7;
             --text-muted: #9ca3af;
             --text-bright: #f3f4f6;
         }
@@ -31,10 +36,11 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding: 2rem 1rem;
             overflow-x: hidden;
-            /* Engineering blueprint grid effect */
             background-image: 
                 linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
@@ -42,10 +48,12 @@
         }
 
         .container {
-            max-width: 650px;
+            max-width: 900px;
             width: 100%;
-            padding: 2rem;
             z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
         }
 
         .hero-panel {
@@ -85,7 +93,7 @@
             font-weight: 300;
         }
 
-        /* --- THE MODUS VECTOR TRANSFORMATION CANVAS --- */
+        /* --- MATRIX CANVAS ANIMATION --- */
         .vector-canvas {
             height: 120px;
             margin: 3rem 0;
@@ -95,7 +103,6 @@
             position: relative;
         }
 
-        /* 4x4 Grid Definition */
         .matrix-container {
             display: grid;
             grid-template-columns: repeat(4, 16px);
@@ -111,16 +118,13 @@
             transition: background 0.3s ease;
         }
 
-        /* Quadrant Color Mapping (Pure Blocks) */
         .p-blue   { background-color: var(--pixel-blue); }
         .p-green  { background-color: var(--pixel-green); }
         .p-yellow { background-color: var(--pixel-yellow); }
         .p-red    { background-color: var(--pixel-red); }
 
-        /* Complex Choreography: 4x4 -> 1x16 CLI -> Spectrum Blast */
         @keyframes morphToLine {
             0%, 15% {
-                /* Phase 1: Static 4x4 Structural Vector */
                 grid-template-columns: repeat(4, 16px);
                 grid-template-rows: repeat(4, 16px);
                 gap: 6px;
@@ -128,7 +132,6 @@
                 filter: hue-rotate(0deg);
             }
             30%, 55% {
-                /* Phase 2: Collapse into 1x16 Horizontal Serialization (CLI representation) */
                 grid-template-columns: repeat(16, 10px);
                 grid-template-rows: repeat(1, 10px);
                 gap: 2px;
@@ -136,7 +139,6 @@
                 filter: hue-rotate(0deg);
             }
             70%, 85% {
-                /* Phase 3: Unfurl into an active spectral sweep */
                 grid-template-columns: repeat(16, 12px);
                 grid-template-rows: repeat(1, 12px);
                 gap: 1px;
@@ -144,7 +146,6 @@
                 filter: hue-rotate(360deg);
             }
             100% {
-                /* Smooth reset loop */
                 grid-template-columns: repeat(4, 16px);
                 grid-template-rows: repeat(4, 16px);
                 gap: 6px;
@@ -198,13 +199,104 @@
             color: var(--text-muted);
             margin-bottom: 2rem;
         }
+
+        /* --- 3D SPHERE ENGINE INTERFACE --- */
+        .sphere-engine-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 820px) {
+            .sphere-engine-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .viewport-wrapper {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: #050811;
+        }
+
+        #sphereCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .controls-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            font-family: monospace;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            accent-color: var(--pixel-blue);
+        }
+
+        .readout-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .color-preview-swatch {
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
+        }
+
+        #out-zone {
+            color: var(--pixel-blue);
+        }
+
+        .curve-selector-canvas {
+            width: 100%;
+            height: 60px;
+            background: #020408;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
+        
         <div class="hero-panel">
-            
             <div class="header">
                 <span class="tag">System Schema Initiation</span>
                 <h1>PixBits <span>// Protocol Modus</span></h1>
@@ -249,9 +341,264 @@
                     <span class="meta-value active">Pre-Scope Architecture Logged</span>
                 </div>
             </div>
+        </div>
+
+        <div class="sphere-engine-panel">
+            
+            <div class="viewport-wrapper">
+                <canvas id="sphereCanvas"></canvas>
+            </div>
+
+            <div class="controls-sidebar">
+                <span class="tag">Sphere Matrix Engine</span>
+
+                <div class="control-group">
+                    <label>AZIMUTH ANGLE (&Phi;): <span id="val-azimuth">180°</span></label>
+                    <input type="range" title="slider-azimuth" id="slider-azimuth" min="0" max="365" value="180">
+                </div>
+
+                <div class="control-group">
+                    <label>LATITUDE (&Theta;): <span id="val-latitude">0°</span></label>
+                    <input type="range" title="slider-latitude" id="slider-latitude" min="-90" max="90" value="0">
+                </div>
+
+                <div class="control-group">
+                    <label>RADIAL DEPTH / HEAT (r): <span id="val-depth">1.0</span></label>
+                    <input type="range" title="slider-depth" id="slider-depth" min="0.1" max="1.0" step="0.01" value="1.0">
+                </div>
+
+                <div class="control-group">
+                    <label>DEV CONSOLE COLOR CURVE</label>
+                    <canvas id="curveCanvas" class="curve-selector-canvas"></canvas>
+                </div>
+
+                <div class="readout-box">
+                    <div class="color-preview-swatch" id="colorSwatch"></div>
+                    <div>HEX: <strong id="out-hex">#000000</strong></div>
+                    <div>sRGB: <span id="out-srgb">[0, 0, 0]</span></div>
+                    <div>RYB VEC: <span id="out-ryb">[0, 0, 0]</span></div>
+                    <div>SPHERICAL VECTOR: <span id="out-vec">[0, 0, 0]</span></div>
+                    <div>ZONE: <span id="out-zone";">Standard Spectrum</span></div>
+                </div>
+            </div>
 
         </div>
+
     </div>
 
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.viewport-wrapper');
+            const canvas = document.getElementById('sphereCanvas');
+
+            // --- THREE.JS SCENE SETUP ---
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 0, 4.5);
+
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // --- SPHERE GEOMETRY & WAVELENGTH MAPPING ---
+            const count = 3000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            function spectralColor(hue, depth) {
+                // Hue derived from 0..360 (or 365), modulated with depth for thermal shift
+                const color = new THREE.Color();
+                const adjustedHue = (hue / 365) % 1.0;
+                // Core depth creates hotter thermal shift (lower wavelength ~ Red/IR), Outer creates UV shift
+                const saturation = 0.8 + depth * 0.2;
+                const lightness = 0.2 + depth * 0.6;
+                color.setHSL(adjustedHue, saturation, lightness);
+                return color;
+            }
+
+            for (let i = 0; i < count; i++) {
+                // Spherical point distribution with 365-degree azimuth modulation
+                const phi = Math.acos(-1 + (2 * i) / count); // Latitude equivalent
+                const theta = Math.sqrt(count * Math.PI) * phi; // Longitude
+                
+                const r = 1.2;
+                const x = r * Math.sin(phi) * Math.cos(theta);
+                const y = r * Math.sin(phi) * Math.sin(theta);
+                const z = r * Math.cos(phi);
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                const deg = (Math.atan2(y, x) * (180 / Math.PI) + 360) % 365;
+                const col = spectralColor(deg, Math.sqrt(x*x + y*y + z*z) / 1.2);
+
+                colors[i * 3] = col.r;
+                colors[i * 3 + 1] = col.g;
+                colors[i * 3 + 2] = col.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.035,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const pointCloud = new THREE.Points(geometry, material);
+            scene.add(pointCloud);
+
+            // Active Point Indicator Marker
+            const markerGeo = new THREE.SphereGeometry(0.06, 16, 16);
+            const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+            const marker = new THREE.Mesh(markerGeo, markerMat);
+            scene.add(marker);
+
+            // --- UI & STATE MANAGEMENT ---
+            const sliderAzimuth = document.getElementById('slider-azimuth');
+            const sliderLatitude = document.getElementById('slider-latitude');
+            const sliderDepth = document.getElementById('slider-depth');
+
+            const valAzimuth = document.getElementById('val-azimuth');
+            const valLatitude = document.getElementById('val-latitude');
+            const valDepth = document.getElementById('val-depth');
+
+            const outHex = document.getElementById('out-hex');
+            const outSrgb = document.getElementById('out-srgb');
+            const outRyb = document.getElementById('out-ryb');
+            const outVec = document.getElementById('out-vec');
+            const outZone = document.getElementById('out-zone');
+            const colorSwatch = document.getElementById('colorSwatch');
+
+            function convertRGBtoRYB(r, g, b) {
+                // Approximate RGB to Subtractive RYB space representation
+                const w = Math.min(r, g, b);
+                let r1 = r - w, g1 = g - w, b1 = b - w;
+                let mg = Math.max(r1, g1, b1);
+                let y1 = Math.min(r1, g1);
+                r1 -= y1; g1 -= y1;
+                if (b1 && g1) { b1 /= 2.0; g1 /= 2.0; }
+                y1 += g1;
+                let my = Math.max(r1, y1, b1);
+                let n = mg / (my || 1);
+                return [Math.round((r1 * n + w) * 255), Math.round((y1 * n + w) * 255), Math.round((b1 * n + w) * 255)];
+            }
+
+            function updateMatrixState() {
+                const az = parseFloat(sliderAzimuth.value);
+                const lat = parseFloat(sliderLatitude.value);
+                const r = parseFloat(sliderDepth.value);
+
+                valAzimuth.textContent = `${az}°`;
+                valLatitude.textContent = `${lat}°`;
+                valDepth.textContent = r.toFixed(2);
+
+                // Convert Spherical Angles (deg) to Carthesian (3D Space)
+                const phiRad = (90 - lat) * (Math.PI / 180);
+                const thetaRad = az * (Math.PI / 180);
+
+                const radius = r * 1.2;
+                const x = radius * Math.sin(phiRad) * Math.cos(thetaRad);
+                const y = radius * Math.sin(phiRad) * Math.sin(thetaRad);
+                const z = radius * Math.cos(phiRad);
+
+                marker.position.set(x, z, y);
+
+                // Calculate Spectral Color
+                const col = spectralColor(az, r);
+                const hexStr = "#" + col.getHexString();
+                const rInt = Math.round(col.r * 255);
+                const gInt = Math.round(col.g * 255);
+                const bInt = Math.round(col.b * 255);
+
+                const rybVec = convertRGBtoRYB(col.r, col.g, col.b);
+
+                // Update UI Readout
+                colorSwatch.style.backgroundColor = hexStr;
+                outHex.textContent = hexStr.toUpperCase();
+                outSrgb.textContent = `[${rInt}, ${gInt}, ${bInt}]`;
+                outRyb.textContent = `[${rybVec.join(', ')}]`;
+                outVec.textContent = `[${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}]`;
+
+                // Handle 360° - 365° Quantum/Reserve logic
+                if (az > 360) {
+                    outZone.textContent = `Quantum Reserved Zone (+${(az - 360).toFixed(1)}°)`;
+                    outZone.style.color = 'var(--pixel-quantum)';
+                } else {
+                    outZone.textContent = 'Standard Spectrum Matrix';
+                    outZone.style.color = 'var(--pixel-blue)';
+                }
+
+                drawCurve(az / 365, r);
+            }
+
+            // Canvas Dev Console Color Curve Selector Visualizer
+            const curveCanvas = document.getElementById('curveCanvas');
+            const cCtx = curveCanvas.getContext('2d');
+
+            function drawCurve(t, depth) {
+                cCtx.clearRect(0, 0, curveCanvas.width, curveCanvas.height);
+                cCtx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                cCtx.lineWidth = 1;
+
+                // Canvas Grid Lines
+                cCtx.beginPath();
+                cCtx.moveTo(0, curveCanvas.height / 2);
+                cCtx.lineTo(curveCanvas.width, curveCanvas.height / 2);
+                cCtx.stroke();
+
+                // Cubic Bezier Color Depth Curve
+                cCtx.beginPath();
+                cCtx.strokeStyle = "#0078d4";
+                cCtx.lineWidth = 2;
+                cCtx.moveTo(0, curveCanvas.height);
+                cCtx.bezierCurveTo(
+                    curveCanvas.width * 0.25, curveCanvas.height * (1 - depth), 
+                    curveCanvas.width * 0.75, curveCanvas.height * depth, 
+                    curveCanvas.width, 0
+                );
+                cCtx.stroke();
+
+                // Current Selector Marker Dot on Curve
+                const cx = t * curveCanvas.width;
+                const cy = (1 - depth) * curveCanvas.height;
+                cCtx.fillStyle = "#a855f7";
+                cCtx.beginPath();
+                cCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+                cCtx.fill();
+            }
+
+            sliderAzimuth.addEventListener('input', updateMatrixState);
+            sliderLatitude.addEventListener('input', updateMatrixState);
+            sliderDepth.addEventListener('input', updateMatrixState);
+
+            // Resize Handling
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            // Initial Execution
+            updateMatrixState();
+
+            // Render Animation Loop
+            function animate() {
+                requestAnimationFrame(animate);
+                pointCloud.rotation.y += 0.0015; // Slow ambient sphere spin
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+        });
+    </script>
 </body>
 </html>
