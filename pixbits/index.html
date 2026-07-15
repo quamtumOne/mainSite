@@ -212,6 +212,7 @@
             display: grid;
             grid-template-columns: 1fr 300px;
             gap: 2rem;
+            position: relative;
         }
 
         @media (max-width: 820px) {
@@ -228,6 +229,7 @@
             overflow: hidden;
             border: 1px solid var(--border-color);
             background: #050811;
+            z-index: 1; /* Keep canvas in background relative to sidebar */
         }
 
         #sphereCanvas {
@@ -236,18 +238,22 @@
             display: block;
         }
 
+        /* CRITICAL FIX: Ensure the entire sidebar sits physically above WebGL layer */
         .controls-sidebar {
             display: flex;
             flex-direction: column;
             gap: 1.2rem;
             font-family: monospace;
-            z-index: 20; /* Keep sliders above render-blocking elements */
+            position: relative;
+            z-index: 999; 
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
+            position: relative;
+            z-index: 999;
         }
 
         .control-group label {
@@ -255,14 +261,17 @@
             color: var(--text-muted);
             display: flex;
             justify-content: space-between;
+            pointer-events: none; /* Let clicks pass straight to slider track */
         }
 
+        /* CRITICAL FIX: Guarantee native input pointer registration */
         .control-group input[type="range"] {
             width: 100%;
             accent-color: var(--pixel-blue);
             cursor: pointer;
             position: relative;
-            z-index: 30;
+            z-index: 1000;
+            pointer-events: auto; 
         }
 
         .readout-box {
@@ -438,7 +447,7 @@
             return hex.length === 1 ? "0" + hex : hex;
         }
 
-        // --- 2. THE UI RESILIENT REBINDING LAYER ---
+        // --- 2. GLOBAL STATE CONTROL ---
         let globalMarkerMesh = null;
         let updateUIState = () => {};
 
@@ -462,12 +471,11 @@
             const cCtx = curveCanvas.getContext('2d');
 
             updateUIState = function() {
-                // Ensure values are fetched cleanly from elements
                 const az = parseFloat(sliderAzimuth.value);
                 const lat = parseFloat(sliderLatitude.value);
                 const r = parseFloat(sliderDepth.value);
 
-                // Instantly force-write slider values visually in HTML
+                // Instantly update visual labels
                 valAzimuth.innerText = `${az}°`;
                 valLatitude.innerText = `${lat}°`;
                 valDepth.innerText = r.toFixed(2);
@@ -501,7 +509,7 @@
                     globalMarkerMesh.position.set(x, z, y);
                 }
 
-                // Color Curve rendering
+                // Render Canvas Color Curve
                 cCtx.clearRect(0, 0, curveCanvas.width, curveCanvas.height);
                 cCtx.strokeStyle = "rgba(255, 255, 255, 0.15)";
                 cCtx.lineWidth = 1;
@@ -529,19 +537,12 @@
                 cCtx.fill();
             };
 
-            // Aggressive listener attachments to bypass browser focus locks
-            const triggerEvents = ['input', 'change', 'pointerdown', 'pointermove'];
-            [sliderAzimuth, sliderLatitude, sliderDepth].forEach(slider => {
-                triggerEvents.forEach(evtType => {
-                    slider.addEventListener(evtType, (e) => {
-                        // Stop browser from sending the slider drag down to the 3D orbit controls
-                        e.stopPropagation(); 
-                        updateUIState();
-                    });
-                });
-            });
+            // Standard clean input listener execution
+            sliderAzimuth.addEventListener('input', updateUIState);
+            sliderLatitude.addEventListener('input', updateUIState);
+            sliderDepth.addEventListener('input', updateUIState);
 
-            // Run right away to paint the default spectrum status
+            // Execute initial state setup
             updateUIState();
         });
 
@@ -561,6 +562,7 @@
                 renderer.setSize(container.clientWidth, container.clientHeight);
                 renderer.setPixelRatio(window.devicePixelRatio);
 
+                // Orbit Controls explicitly bound ONLY to the canvas element
                 const controls = new THREE.OrbitControls(camera, renderer.domElement);
                 controls.enableDamping = true;
                 controls.dampingFactor = 0.05;
@@ -628,7 +630,7 @@
                 animate();
 
             } catch (err) {
-                console.warn("WebGL renderer isolated. Core Math Engine Active. Source: ", err);
+                console.warn("WebGL initialization bypassed. Core logic active.");
             }
         });
     </script>
