@@ -241,6 +241,7 @@
             flex-direction: column;
             gap: 1.2rem;
             font-family: monospace;
+            z-index: 20; /* Keep sliders above render-blocking elements */
         }
 
         .control-group {
@@ -259,6 +260,9 @@
         .control-group input[type="range"] {
             width: 100%;
             accent-color: var(--pixel-blue);
+            cursor: pointer;
+            position: relative;
+            z-index: 30;
         }
 
         .readout-box {
@@ -280,7 +284,7 @@
             height: 30px;
             border-radius: 4px;
             border: 1px solid var(--border-color);
-            transition: background-color 0.2s ease;
+            transition: background-color 0.1s ease;
         }
 
         .curve-selector-canvas {
@@ -387,9 +391,8 @@
     </div>
 
     <script>
-        // --- SECTION 1: SYSTEM MATHEMATICS & CALCULATOR (Runs 100% standalone) ---
+        // --- 1. CORE CALCULATION ENGINE ---
         function calculateSpectralColor(hue, depth) {
-            // High-reliability custom HSL implementation preventing math ceiling crashes
             const adjustedHue = (hue / 365) % 1.0;
             const saturation = 0.8 + (depth * 0.2);
             const lightness = 0.2 + (depth * 0.6);
@@ -414,7 +417,6 @@
         }
 
         function calculateRYB(r, g, b) {
-            // RGB Subtractive to RYB simulation conversion
             const w = Math.min(r, g, b);
             let r1 = r - w, g1 = g - w, b1 = b - w;
             const mg = Math.max(r1, g1, b1);
@@ -436,11 +438,10 @@
             return hex.length === 1 ? "0" + hex : hex;
         }
 
-        // --- GLOBAL REFERENCES FOR SYNCRONIZATION ---
+        // --- 2. THE UI RESILIENT REBINDING LAYER ---
         let globalMarkerMesh = null;
         let updateUIState = () => {};
 
-        // Run as soon as DOM parses, without waiting for external script payloads
         window.addEventListener('DOMContentLoaded', () => {
             const sliderAzimuth = document.getElementById('slider-azimuth');
             const sliderLatitude = document.getElementById('slider-latitude');
@@ -461,21 +462,20 @@
             const cCtx = curveCanvas.getContext('2d');
 
             updateUIState = function() {
-                const az = parseFloat(sliderAzimuth.value || 0);
-                const lat = parseFloat(sliderLatitude.value || 0);
-                const r = parseFloat(sliderDepth.value || 1.0);
+                // Ensure values are fetched cleanly from elements
+                const az = parseFloat(sliderAzimuth.value);
+                const lat = parseFloat(sliderLatitude.value);
+                const r = parseFloat(sliderDepth.value);
 
-                // Update text elements instantly
-                valAzimuth.textContent = `${az}°`;
-                valLatitude.textContent = `${lat}°`;
-                valDepth.textContent = r.toFixed(2);
+                // Instantly force-write slider values visually in HTML
+                valAzimuth.innerText = `${az}°`;
+                valLatitude.innerText = `${lat}°`;
+                valDepth.innerText = r.toFixed(2);
 
-                // Derive Color
                 const rgb = calculateSpectralColor(az, r);
                 const hex = `#${valueToHex(rgb.r)}${valueToHex(rgb.g)}${valueToHex(rgb.b)}`.toUpperCase();
                 const ryb = calculateRYB(rgb.r, rgb.g, rgb.b);
 
-                // Spatial coordinate calculation
                 const phiRad = (90 - lat) * (Math.PI / 180);
                 const thetaRad = az * (Math.PI / 180);
                 const radius = r * 1.2;
@@ -483,27 +483,25 @@
                 const y = radius * Math.sin(phiRad) * Math.sin(thetaRad);
                 const z = radius * Math.cos(phiRad);
 
-                // Set styles and text outputs
                 colorSwatch.style.backgroundColor = hex;
-                outHex.textContent = hex;
-                outSrgb.textContent = `[${Math.round(rgb.r*255)}, ${Math.round(rgb.g*255)}, ${Math.round(rgb.b*255)}]`;
-                outRyb.textContent = `[${ryb.join(', ')}]`;
-                outVec.textContent = `[${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}]`;
+                outHex.innerText = hex;
+                outSrgb.innerText = `[${Math.round(rgb.r*255)}, ${Math.round(rgb.g*255)}, ${Math.round(rgb.b*255)}]`;
+                outRyb.innerText = `[${ryb.join(', ')}]`;
+                outVec.innerText = `[${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}]`;
 
                 if (az > 360) {
-                    outZone.textContent = `Quantum Reserved Zone (+${(az - 360).toFixed(1)}°)`;
+                    outZone.innerText = `Quantum Reserved Zone (+${(az - 360).toFixed(1)}°)`;
                     outZone.style.color = 'var(--pixel-quantum)';
                 } else {
-                    outZone.textContent = 'Standard Spectrum Matrix';
+                    outZone.innerText = 'Standard Spectrum Matrix';
                     outZone.style.color = 'var(--pixel-blue)';
                 }
 
-                // If WebGL loaded successfully, map values to physical sphere mesh
                 if (globalMarkerMesh) {
                     globalMarkerMesh.position.set(x, z, y);
                 }
 
-                // Render Canvas Color Curve Selector (2D)
+                // Color Curve rendering
                 cCtx.clearRect(0, 0, curveCanvas.width, curveCanvas.height);
                 cCtx.strokeStyle = "rgba(255, 255, 255, 0.15)";
                 cCtx.lineWidth = 1;
@@ -531,15 +529,23 @@
                 cCtx.fill();
             };
 
-            sliderAzimuth.addEventListener('input', updateUIState);
-            sliderLatitude.addEventListener('input', updateUIState);
-            sliderDepth.addEventListener('input', updateUIState);
+            // Aggressive listener attachments to bypass browser focus locks
+            const triggerEvents = ['input', 'change', 'pointerdown', 'pointermove'];
+            [sliderAzimuth, sliderLatitude, sliderDepth].forEach(slider => {
+                triggerEvents.forEach(evtType => {
+                    slider.addEventListener(evtType, (e) => {
+                        // Stop browser from sending the slider drag down to the 3D orbit controls
+                        e.stopPropagation(); 
+                        updateUIState();
+                    });
+                });
+            });
 
-            // Execute initial state setup
+            // Run right away to paint the default spectrum status
             updateUIState();
         });
 
-        // --- SECTION 2: WEBGL INITIALIZATION (Safe-sandboxed loading) ---
+        // --- 3. WEBGL VIEWPORT ENGINE ---
         window.addEventListener('load', () => {
             try {
                 if (typeof THREE === 'undefined') return;
@@ -559,7 +565,7 @@
                 controls.enableDamping = true;
                 controls.dampingFactor = 0.05;
 
-                // Generating point matrix points on sphere
+                // Sphere Point Grid Generating Loop
                 const count = 3000;
                 const geometry = new THREE.BufferGeometry();
                 const positions = new Float32Array(count * 3);
@@ -599,13 +605,13 @@
                 const pointCloud = new THREE.Points(geometry, material);
                 scene.add(pointCloud);
 
-                // Setup Active Target Selector Marker
+                // Tracking Marker
                 const markerGeo = new THREE.SphereGeometry(0.06, 16, 16);
                 const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
                 globalMarkerMesh = new THREE.Mesh(markerGeo, markerMat);
                 scene.add(globalMarkerMesh);
 
-                updateUIState(); // Snap positioning of 3D cursor marker
+                updateUIState(); // Position selector cursor to match the initial slider values
 
                 window.addEventListener('resize', () => {
                     camera.aspect = container.clientWidth / container.clientHeight;
@@ -622,7 +628,7 @@
                 animate();
 
             } catch (err) {
-                console.error("Three.js initialization safely bypassed: ", err);
+                console.warn("WebGL renderer isolated. Core Math Engine Active. Source: ", err);
             }
         });
     </script>
