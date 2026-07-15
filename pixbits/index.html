@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PixBits // Pre-Scope Specification & 3D Quantum Sphere</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="window.threeLoadError=true;"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" onerror="window.controlsLoadError=true;"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <style>
         :root {
@@ -272,6 +272,10 @@
             font-size: 0.75rem;
         }
 
+        .out-zone {
+            color: var(--pixel-blue);
+        }
+
         .color-preview-swatch {
             height: 30px;
             border-radius: 4px;
@@ -285,22 +289,6 @@
             background: #020408;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-        }
-
-        .warning-banner {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            background: rgba(220, 38, 38, 0.9);
-            color: #fff;
-            font-family: monospace;
-            font-size: 0.7rem;
-            padding: 6px 10px;
-            border-radius: 4px;
-            z-index: 20;
-            display: none;
-            border: 1px solid #ef4444;
         }
     </style>
 </head>
@@ -358,7 +346,6 @@
         <div class="sphere-engine-panel">
             
             <div class="viewport-wrapper">
-                <div id="fallback-warning" class="warning-banner">Offline / WebGL Blocked: Interactive 2D Map Running Active.</div>
                 <canvas id="sphereCanvas"></canvas>
             </div>
 
@@ -391,7 +378,7 @@
                     <div>sRGB: <span id="out-srgb">[0, 0, 0]</span></div>
                     <div>RYB VEC: <span id="out-ryb">[0, 0, 0]</span></div>
                     <div>SPHERICAL VECTOR: <span id="out-vec">[0, 0, 0]</span></div>
-                    <div>ZONE: <span id="out-zone" style="color: var(--pixel-blue);">Standard Spectrum</span></div>
+                    <div>ZONE: <span id="out-zone";">Standard Spectrum</span></div>
                 </div>
             </div>
 
@@ -400,56 +387,60 @@
     </div>
 
     <script>
-        // --- 1. CORE MATHEMATICAL & COLOR COMPONENT (Zero-Dependency) ---
-        function spectralHSL(hue, depth) {
-            // Safe mathematical conversion to dynamic HSL spectrum
+        // --- SECTION 1: SYSTEM MATHEMATICS & CALCULATOR (Runs 100% standalone) ---
+        function calculateSpectralColor(hue, depth) {
+            // High-reliability custom HSL implementation preventing math ceiling crashes
             const adjustedHue = (hue / 365) % 1.0;
-            const saturation = 0.8 + depth * 0.2;
-            const lightness = 0.2 + depth * 0.6;
-            
-            // HSL to RGB helper
-            let r, g, b;
+            const saturation = 0.8 + (depth * 0.2);
+            const lightness = 0.2 + (depth * 0.6);
+
             const q = lightness < 0.5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
             const p = 2 * lightness - q;
-            
-            function hue2rgb(t) {
+
+            const hue2rgb = (t) => {
                 if (t < 0) t += 1;
                 if (t > 1) t -= 1;
                 if (t < 1/6) return p + (q - p) * 6 * t;
                 if (t < 1/2) return q;
                 if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
                 return p;
-            }
-            
-            r = hue2rgb(adjustedHue + 1/3);
-            g = hue2rgb(adjustedHue);
-            b = hue2rgb(adjustedHue - 1/3);
+            };
+
+            const r = Math.max(0, Math.min(1, hue2rgb(adjustedHue + 1/3)));
+            const g = Math.max(0, Math.min(1, hue2rgb(adjustedHue)));
+            const b = Math.max(0, Math.min(1, hue2rgb(adjustedHue - 1/3)));
 
             return { r, g, b };
         }
 
-        function convertRGBtoRYB(r, g, b) {
+        function calculateRYB(r, g, b) {
+            // RGB Subtractive to RYB simulation conversion
             const w = Math.min(r, g, b);
             let r1 = r - w, g1 = g - w, b1 = b - w;
-            let mg = Math.max(r1, g1, b1);
+            const mg = Math.max(r1, g1, b1);
             let y1 = Math.min(r1, g1);
             r1 -= y1; g1 -= y1;
             if (b1 && g1) { b1 /= 2.0; g1 /= 2.0; }
             y1 += g1;
-            let my = Math.max(r1, y1, b1);
-            let n = mg / (my || 1);
-            return [Math.round((r1 * n + w) * 255), Math.round((y1 * n + w) * 255), Math.round((b1 * n + w) * 255)];
+            const my = Math.max(r1, y1, b1);
+            const n = mg / (my || 1);
+            return [
+                Math.round((r1 * n + w) * 255),
+                Math.round((y1 * n + w) * 255),
+                Math.round((b1 * n + w) * 255)
+            ];
         }
 
-        function rgbToHex(r, g, b) {
-            const toHex = val => {
-                const hex = Math.round(val * 255).toString(16);
-                return hex.length === 1 ? "0" + hex : hex;
-            };
-            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        function valueToHex(v) {
+            const hex = Math.round(v * 255).toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
         }
 
-        // --- 2. THE RESILIENT MAIN PROCESS ---
+        // --- GLOBAL REFERENCES FOR SYNCRONIZATION ---
+        let globalMarkerMesh = null;
+        let updateUIState = () => {};
+
+        // Run as soon as DOM parses, without waiting for external script payloads
         window.addEventListener('DOMContentLoaded', () => {
             const sliderAzimuth = document.getElementById('slider-azimuth');
             const sliderLatitude = document.getElementById('slider-latitude');
@@ -469,25 +460,22 @@
             const curveCanvas = document.getElementById('curveCanvas');
             const cCtx = curveCanvas.getContext('2d');
 
-            let marker3DRef = null; // Stays null if ThreeJS fails
+            updateUIState = function() {
+                const az = parseFloat(sliderAzimuth.value || 0);
+                const lat = parseFloat(sliderLatitude.value || 0);
+                const r = parseFloat(sliderDepth.value || 1.0);
 
-            // Central state updates (Runs completely independent of WebGL status)
-            function updateSystemState() {
-                const az = parseFloat(sliderAzimuth.value);
-                const lat = parseFloat(sliderLatitude.value);
-                const r = parseFloat(sliderDepth.value);
-
-                // Update UI Labels
+                // Update text elements instantly
                 valAzimuth.textContent = `${az}°`;
                 valLatitude.textContent = `${lat}°`;
                 valDepth.textContent = r.toFixed(2);
 
-                // Calculate color vectors
-                const rgb = spectralHSL(az, r);
-                const hexStr = rgbToHex(rgb.r, rgb.g, rgb.b);
-                const rybVec = convertRGBtoRYB(rgb.r, rgb.g, rgb.b);
+                // Derive Color
+                const rgb = calculateSpectralColor(az, r);
+                const hex = `#${valueToHex(rgb.r)}${valueToHex(rgb.g)}${valueToHex(rgb.b)}`.toUpperCase();
+                const ryb = calculateRYB(rgb.r, rgb.g, rgb.b);
 
-                // Spherical coordinates transformation
+                // Spatial coordinate calculation
                 const phiRad = (90 - lat) * (Math.PI / 180);
                 const thetaRad = az * (Math.PI / 180);
                 const radius = r * 1.2;
@@ -495,11 +483,11 @@
                 const y = radius * Math.sin(phiRad) * Math.sin(thetaRad);
                 const z = radius * Math.cos(phiRad);
 
-                // Push values directly to UI elements
-                colorSwatch.style.backgroundColor = hexStr;
-                outHex.textContent = hexStr.toUpperCase();
+                // Set styles and text outputs
+                colorSwatch.style.backgroundColor = hex;
+                outHex.textContent = hex;
                 outSrgb.textContent = `[${Math.round(rgb.r*255)}, ${Math.round(rgb.g*255)}, ${Math.round(rgb.b*255)}]`;
-                outRyb.textContent = `[${rybVec.join(', ')}]`;
+                outRyb.textContent = `[${ryb.join(', ')}]`;
                 outVec.textContent = `[${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}]`;
 
                 if (az > 360) {
@@ -510,19 +498,15 @@
                     outZone.style.color = 'var(--pixel-blue)';
                 }
 
-                // Move 3D marker if engine is working
-                if (marker3DRef) {
-                    marker3DRef.position.set(x, z, y);
+                // If WebGL loaded successfully, map values to physical sphere mesh
+                if (globalMarkerMesh) {
+                    globalMarkerMesh.position.set(x, z, y);
                 }
 
-                drawCurve(az / 365, r);
-            }
-
-            function drawCurve(t, depth) {
+                // Render Canvas Color Curve Selector (2D)
                 cCtx.clearRect(0, 0, curveCanvas.width, curveCanvas.height);
                 cCtx.strokeStyle = "rgba(255, 255, 255, 0.15)";
                 cCtx.lineWidth = 1;
-
                 cCtx.beginPath();
                 cCtx.moveTo(0, curveCanvas.height / 2);
                 cCtx.lineTo(curveCanvas.width, curveCanvas.height / 2);
@@ -533,32 +517,32 @@
                 cCtx.lineWidth = 2;
                 cCtx.moveTo(0, curveCanvas.height);
                 cCtx.bezierCurveTo(
-                    curveCanvas.width * 0.25, curveCanvas.height * (1 - depth), 
-                    curveCanvas.width * 0.75, curveCanvas.height * depth, 
+                    curveCanvas.width * 0.25, curveCanvas.height * (1 - r), 
+                    curveCanvas.width * 0.75, curveCanvas.height * r, 
                     curveCanvas.width, 0
                 );
                 cCtx.stroke();
 
-                const cx = t * curveCanvas.width;
-                const cy = (1 - depth) * curveCanvas.height;
+                const cx = (az / 365) * curveCanvas.width;
+                const cy = (1 - r) * curveCanvas.height;
                 cCtx.fillStyle = "#a855f7";
                 cCtx.beginPath();
                 cCtx.arc(cx, cy, 4, 0, Math.PI * 2);
                 cCtx.fill();
-            }
+            };
 
-            // Hook listeners immediately (guarantees sliders and math work instantly)
-            sliderAzimuth.addEventListener('input', updateSystemState);
-            sliderLatitude.addEventListener('input', updateSystemState);
-            sliderDepth.addEventListener('input', updateSystemState);
+            sliderAzimuth.addEventListener('input', updateUIState);
+            sliderLatitude.addEventListener('input', updateUIState);
+            sliderDepth.addEventListener('input', updateUIState);
 
-            updateSystemState();
+            // Execute initial state setup
+            updateUIState();
+        });
 
-            // --- 3. THE 3D VIEWPORT INITIALIZER (Self-Containing Try/Catch Block) ---
+        // --- SECTION 2: WEBGL INITIALIZATION (Safe-sandboxed loading) ---
+        window.addEventListener('load', () => {
             try {
-                if (window.threeLoadError || window.controlsLoadError || typeof THREE === 'undefined') {
-                    throw new Error("ThreeJS script block failed to load.");
-                }
+                if (typeof THREE === 'undefined') return;
 
                 const container = document.querySelector('.viewport-wrapper');
                 const canvas = document.getElementById('sphereCanvas');
@@ -575,7 +559,7 @@
                 controls.enableDamping = true;
                 controls.dampingFactor = 0.05;
 
-                // Build Spherical Matrix Points
+                // Generating point matrix points on sphere
                 const count = 3000;
                 const geometry = new THREE.BufferGeometry();
                 const positions = new Float32Array(count * 3);
@@ -595,7 +579,7 @@
                     positions[i * 3 + 2] = z;
 
                     const deg = (Math.atan2(y, x) * (180 / Math.PI) + 360) % 365;
-                    const rgb = spectralHSL(deg, Math.sqrt(x*x + y*y + z*z) / 1.2);
+                    const rgb = calculateSpectralColor(deg, Math.sqrt(x*x + y*y + z*z) / 1.2);
 
                     colors[i * 3] = rgb.r;
                     colors[i * 3 + 1] = rgb.g;
@@ -615,15 +599,13 @@
                 const pointCloud = new THREE.Points(geometry, material);
                 scene.add(pointCloud);
 
-                // Setup Active Selector Target Indicator
+                // Setup Active Target Selector Marker
                 const markerGeo = new THREE.SphereGeometry(0.06, 16, 16);
                 const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
-                const markerMesh = new THREE.Mesh(markerGeo, markerMat);
-                scene.add(markerMesh);
+                globalMarkerMesh = new THREE.Mesh(markerGeo, markerMat);
+                scene.add(globalMarkerMesh);
 
-                // Expose 3D reference object to core interface logic
-                marker3DRef = markerMesh;
-                updateSystemState(); // Re-sync to snap initial values
+                updateUIState(); // Snap positioning of 3D cursor marker
 
                 window.addEventListener('resize', () => {
                     camera.aspect = container.clientWidth / container.clientHeight;
@@ -633,15 +615,14 @@
 
                 function animate() {
                     requestAnimationFrame(animate);
-                    pointCloud.rotation.y += 0.0015;
+                    pointCloud.rotation.y += 0.0012;
                     controls.update();
                     renderer.render(scene, camera);
                 }
                 animate();
 
             } catch (err) {
-                console.warn("WebGL initialization skipped. Error:", err.message);
-                document.getElementById('fallback-warning').style.display = 'block';
+                console.error("Three.js initialization safely bypassed: ", err);
             }
         });
     </script>
