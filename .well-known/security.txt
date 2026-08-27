@@ -1,6 +1,6 @@
 Contact: mailto:contact@quamtum.one
-Encryption: https://quamtum.one
-Expires: 2027-02-13T00:00:07.000Z
+Encryption: https://quamtum.one/.well-known/gpg-key.txt
+Expires: 2027-02-13T00:00:07Z
 Acknowledgements: https://quamtum.one
 Preferred-Languages: en
-Canonical: https://quamtum.one
+Canonical: https://quamtum.one/.well-known/security.txt
